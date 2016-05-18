@@ -13,7 +13,7 @@ Each incremental file starts with the following comments:
 Before we start applying these incremental files, we'd like to validate whether the previous timestamp of the first processed file matches the timestamp that's stored in the database. After that, we'd like to validate that the timestamps of all incremental files match with each other. We handle this validation-process with our existing Node-application.
 
 ## Initial approach
-Our initial approach of handling this is by reading all files in the `incrementals` folder. Since filenames contain a date, sorting the files alphabetically within the folder gives us all available incremental files in order. For each file, we read it, abstract the increment and previous timestamps and validate whether the timestamps are in sequence.
+Our initial approach of handling this is by reading all files in the `incrementals` folder. Since filenames contain a date, sorting the files alphabetically within the folder gives us all available incremental files in order. For each file, we read it, extract the increment and previous timestamps and validate whether the timestamps are in sequence.
 
 The (simplified) code for doing this:
 ```js
@@ -112,7 +112,7 @@ fs.readdir('./incrementals', (e, files) => {
 The thing that has changed is how a single file is processed. Instead of using `fs.readFile`, we now generate a filestream with `fs.createReadStream`. We pass this stream to [Highland](http://highlandjs.org/). Highland is a library that provides useful functions for handling streams and for transforming and iterating data on streams.
 
 Highland transforms the contents of the incremental file as follows:
-- [`split()`](http://highlandjs.org/#split) splits the file by line. Each line that is abstracted is being put on the stream again.
+- [`split()`](http://highlandjs.org/#split) splits the file by line. Each line that is extracted is being put on the stream again.
 - [`take(2)`](http://highlandjs.org/#take) creates a new stream with 2 elements: the first two lines of the increment file
 - [`toArray()`](http://highlandjs.org/#toArray) casts this stream to an Array so we can work with it in its callback function
 
