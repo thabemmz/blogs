@@ -47,7 +47,7 @@ fs.readdir('./incrementals', (e, files) => {
 
 We process each file in the `incrementals` folder in order by using [Async](https://github.com/caolan/async). Async is a module that helps you to deal with asynchronous challenges within Node. The [`async.filterSeries`](https://github.com/caolan/async#filtercoll-iteratee-callback) function we use here returns an array only containing items that passed the test we implemented in the function we defined. It does this for each item in the provided collection and only runs a single operation at a time. This makes sure all files are validated in order. This is necessary because we can have multiple sequential inremental files within the `incrementals` folder.
 
-Each file is split in lines. The first line should be `-- Increment timestamp: 20160129_192339`, the second line should be `-- Previous timestamp: 20160128_192500`. The function `extractTimestamp` extracts only the timestamp from these lines. The implementation of this function is left as an excersize for the reader ;-).
+Each file is split in lines. The first line should be `-- Increment timestamp: 20160129_192339`, the second line should be `-- Previous timestamp: 20160128_192500`. The function `extractTimestamp` extracts only the timestamp from these lines. The implementation of this function is left as an exercise for the reader ;-).
 
 So far, so good...
 
@@ -117,6 +117,6 @@ Since Highland uses [lazy evaluation](http://highlandjs.org/#laziness), it pause
 With this approach it doesn't matter how large the files are, since only the first part of the file will be looked at. Highland provides a good layer of abstraction and makes our code more readable.
 
 ## Conclusions
-From this small excersize we learn that streams in Node are not just the solution for processing large files, but they also optimize processing smaller files, since they only do what is absolutely necessary. Streams also improve your way of handling how a file is read. We can pause and resume reading the file at any given time. And with a library like Highland we also improve the readability of our code.
+From this small exercise we learn that streams in Node are not just the solution for processing large files, but they also optimize processing smaller files, since they only do what is absolutely necessary. Streams also improve your way of handling how a file is read. We can pause and resume reading the file at any given time. And with a library like Highland we also improve the readability of our code.
 
 We couldn't agree more with [@dominictarr](https://twitter.com/dominictarr) in his [High level style in javascript](https://gist.github.com/dominictarr/2401787): "streams in node are one of the rare occasions when doing something the fast way is actually easier. SO USE THEM."
