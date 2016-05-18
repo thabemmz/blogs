@@ -22,33 +22,32 @@ const async = require('async');
 const path = require('path');
 
 let latest = '20160128_192500';
-let validFiles = [];
 
 // Read all files in ./incrementals folder
 fs.readdir('./incrementals', (e, files) => {
-  async.eachSeries(files.sort(), (file, cb) => {
+  async.filterSeries(files.sort(), (file, cb) => {
     fs.readFile(path.join('incrementals', file), (err, data) => {
       const lines = data.toString().split('\r\n');
 
-      let previous = lines[1].split(' ').pop();
-      if (latest && latest !== previous) {
-        cb();
-        return;
-      }
-      latest = lines[0].split(' ').pop();
-      validFiles.push(file);
+      let previous = extractTimestamp(lines[1]);
 
-      cb();
+      if (latest && latest !== previous) {
+        return cb();
+      }
+
+      latest = extractTimestamp(lines[0]);
+
+      cb(null, true);
     });
-  }, () => {
+  }, (err, validFiles) => {
     console.log(validFiles);  // => Prints a list of all valid files
   });
 });
 ```
 
-We process each file in the `incrementals` folder in order by using [Async](https://github.com/caolan/async). Async is a module that helps you to deal with asynchronous challenges within Node. The `async.eachSeries` function we use here makes sure a function is applied to each item of the provided collection, but it only runs a single operation at a time. This makes sure all files are validated in order. This is necessary because we can have two sequential inremental files within the `incrementals` folder.
+We process each file in the `incrementals` folder in order by using [Async](https://github.com/caolan/async). Async is a module that helps you to deal with asynchronous challenges within Node. The [`async.filterSeries`](https://github.com/caolan/async#filtercoll-iteratee-callback) function we use here returns an array only containing items that passed the test we implemented in the function we defined. It does this for each item in the provided collection and only runs a single operation at a time. This makes sure all files are validated in order. This is necessary because we can have multiple sequential inremental files within the `incrementals` folder.
 
-Each file is split in lines. The first line should be `-- Increment timestamp: 20160129_192339`, the second line should be `-- Previous timestamp: 20160128_192500`. By splitting each line on space and only using the last element of each line, we have the timestamps and we can compare them to other timestamps available.
+Each file is split in lines. The first line should be `-- Increment timestamp: 20160129_192339`, the second line should be `-- Previous timestamp: 20160128_192500`. The function `extractTimestamp` extracts only the timestamp from these lines. The implementation of this function is left as an excersize for the reader ;-).
 
 So far, so good...
 
@@ -80,30 +79,27 @@ const path = require('path');
 const highland = require('highland');
 
 let latest = '20160128_192500';
-let validFiles = [];
 
 // Read all files in ./incrementals folder
 fs.readdir('./incrementals', (e, files) => {
-  async.eachSeries(files.sort(), (file, cb) => {
+  async.filterSeries(files.sort(), (file, cb) => {
     const fileStream = fs.createReadStream(path.join('incrementals', file));
 
     highland(fileStream)
       .split()  // split file in lines
       .take(2)  // only the first two lines are interesting for us
       .toArray((lines) => {
-        const previous = lines[1].split(' ').pop();
+        const previous = extractTimestamp(lines[1]);
 
         if (latest && latest !== previous) {
-          cb();
-          return;
+          return cb();
         }
 
-        latest = lines[0].split(' ').pop();
-        validFiles.push(file);
+        latest = extractTimestamp(lines[0]);
 
-        cb();
+        cb(null, true);
       });
-  }, () => {
+  }, (err, validFiles) => {
     console.log(validFiles);  // => Prints a list of all valid files
   });
 });

@@ -5,7 +5,6 @@ const path = require('path');
 const async = require('async');
 
 let latest = '20151009_194541';
-const validFiles = [];
 
 // Read all files in ./incrementals folder
 fs.readdir('./incrementals', (e, files) => {
@@ -14,7 +13,11 @@ fs.readdir('./incrementals', (e, files) => {
     return;
   }
 
-  async.eachSeries(files.sort(), (file, cb) => {
+  async.mapSeries(files.sort(), (file, cb) => {
+    if (file === '.gitkeep') {
+      return cb();
+    }
+
     fs.readFile(path.join('incrementals', file), (err, data) => {
       if (err) {
         console.log(err);
@@ -25,14 +28,13 @@ fs.readdir('./incrementals', (e, files) => {
 
       const previous = lines[1].split(' ').pop().trim();
       if (latest && latest !== previous) {
-        return false;
+        return cb();
       }
       latest = lines[0].split(' ').pop().trim();
-      validFiles.push(file);
 
-      cb();
+      cb(null, file);
     });
-  }, () => {
+  }, (err, validFiles) => {
     console.log(validFiles);  // => Prints a list of all valid files
   });
 });

@@ -6,7 +6,6 @@ const async = require('async');
 const highland = require('highland');
 
 let latest = '20151009_194541';
-const validFiles = [];
 
 // Read all files in ./incrementals folder
 fs.readdir('./incrementals', (e, files) => {
@@ -15,19 +14,23 @@ fs.readdir('./incrementals', (e, files) => {
     return;
   }
 
-  async.eachSeries(files.sort(), (file, cb) => {
+  async.filterSeries(files.sort(), (file, cb) => {
+    if (file === '.gitkeep') {
+      return cb();
+    }
+
     const fileStream = fs.createReadStream(path.join('incrementals', file));
 
     // Inserted these listeners to check Highland behavior
-    fileStream.on('readable', () => {
-      console.log('There is a new datachunk!');
-      fileStream.resume();
-    });
-
-    fileStream.on('data', (chunk) => {
-      console.log('I just received data');
-      console.log(chunk.toString());
-    });
+    // fileStream.on('readable', () => {
+    //   console.log('There is a new datachunk!');
+    //   fileStream.resume();
+    // });
+    //
+    // fileStream.on('data', (chunk) => {
+    //   console.log('I just received data');
+    //   console.log(chunk.toString());
+    // });
 
     highland(fileStream)
       .split()  // split file in lines
@@ -36,16 +39,14 @@ fs.readdir('./incrementals', (e, files) => {
         const previous = lines[1].split(' ').pop();
 
         if (latest && latest !== previous) {
-          cb();
-          return;
+          return cb();
         }
 
         latest = lines[0].split(' ').pop();
-        validFiles.push(file);
 
-        cb();
+        cb(null, true);
       });
-  }, () => {
+  }, (err, validFiles) => {
     console.log(validFiles);  // => Prints a list of all valid files
   });
 });
