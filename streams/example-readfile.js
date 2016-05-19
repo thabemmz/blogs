@@ -13,7 +13,7 @@ fs.readdir('./incrementals', (e, files) => {
     return;
   }
 
-  async.mapSeries(files.sort(), (file, cb) => {
+  async.filterSeries(files.sort(), (file, cb) => {
     if (file === '.gitkeep') {
       return cb();
     }
@@ -32,7 +32,7 @@ fs.readdir('./incrementals', (e, files) => {
       }
       latest = lines[0].split(' ').pop().trim();
 
-      cb(null, file);
+      cb(null, true);
     });
   }, (err, validFiles) => {
     console.log(validFiles);  // => Prints a list of all valid files

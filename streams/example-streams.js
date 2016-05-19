@@ -22,15 +22,15 @@ fs.readdir('./incrementals', (e, files) => {
     const fileStream = fs.createReadStream(path.join('incrementals', file));
 
     // Inserted these listeners to check Highland behavior
-    // fileStream.on('readable', () => {
-    //   console.log('There is a new datachunk!');
-    //   fileStream.resume();
-    // });
-    //
-    // fileStream.on('data', (chunk) => {
-    //   console.log('I just received data');
-    //   console.log(chunk.toString());
-    // });
+    fileStream.on('readable', () => {
+      console.log('There is a new datachunk!');
+      fileStream.resume();
+    });
+
+    fileStream.on('data', (chunk) => {
+      console.log('I just received data');
+      console.log(chunk.toString());
+    });
 
     highland(fileStream)
       .split()  // split file in lines
